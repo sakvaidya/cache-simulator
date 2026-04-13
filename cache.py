@@ -11,6 +11,11 @@ class CacheBlock:
 
 @dataclass
 class CacheSet:
+    """
+    Represents one set in a set-associative cache.
+    Each set has `associativity` number of blocks.
+    LRU access ordering is tracked externally by LRUPolicy via block indices.
+    """
     associativity: int = 1
     blocks: list = field(default_factory=list)
 
@@ -40,16 +45,10 @@ class Cache:
         return address % self.num_sets
 
     def access(self, address: int, task: str = "?") -> Tuple[str, int, int]:
-        """
-        Access a memory address.
-        Returns (result, set_index, block_index)
-        result is one of: 'hit', 'miss', 'reload_transient'
-        """
         self.total_refs += 1
         set_index = self.get_set_index(address)
         cache_set = self.sets[set_index]
 
-        # Check for hit
         for i, block in enumerate(cache_set.blocks):
             if block.valid and block.tag == address:
                 self.hits += 1
@@ -57,7 +56,6 @@ class Cache:
                 self.last_access = address
                 return ("hit", set_index, i)
 
-        # Miss — find empty slot or evict
         self.misses += 1
         empty = next((i for i, b in enumerate(cache_set.blocks) if not b.valid), None)
 
@@ -66,7 +64,6 @@ class Cache:
         else:
             idx = self.policy.choose_victim(cache_set.blocks, set_index)
 
-        # Reload transient: evicting a block that was just brought in
         result = "miss"
         if cache_set.blocks[idx].valid and cache_set.blocks[idx].tag == self.last_access:
             self.reload_transients += 1
@@ -84,6 +81,8 @@ class Cache:
         self.misses = 0
         self.reload_transients = 0
         self.last_access = None
+        if self.policy:
+            self.policy.reset()
 
     @property
     def hit_rate(self) -> float:
