@@ -1,12 +1,17 @@
 import tkinter as tk
 from cache import Cache
-from replacement import RANDPolicy
+from replacement import RANDPolicy, LRUPolicy, FIFOPolicy
 from gui.config_panel import ConfigPanel
+from gui.cache_view import CacheView, LegendBar
 
 
-def make_policy(name: str, num_sets: int, associativity: int):
+def make_policy(name: str):
     if name == "RAND":
         return RANDPolicy()
+    elif name == "LRU":
+        return LRUPolicy()
+    elif name == "FIFO":
+        return FIFOPolicy()
     raise ValueError(f"Unknown policy: {name}")
 
 
@@ -19,6 +24,7 @@ class App:
         self.cache = None
         self.memory_refs = []
         self.ref_index = 0
+        self.task_name = "A"
 
         self.left_frame = tk.Frame(root, bg="#4a7c2f", width=260)
         self.left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=6, pady=6)
@@ -30,17 +36,23 @@ class App:
         self.config_panel = ConfigPanel(self.left_frame, on_update_config=self._on_update)
         self.config_panel.pack(fill=tk.X)
 
-        self.status = tk.Label(self.right_frame,
-                               text="Configure cache and press 'Update Configuration'",
-                               bg="white", font=("Helvetica", 11))
-        self.status.pack(expand=True)
+        self.cache_view = CacheView(self.right_frame)
+        self.cache_view.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+
+        self.legend = LegendBar(self.right_frame)
+        self.legend.pack(fill=tk.X, padx=4, pady=(0, 4))
 
     def _on_update(self, cfg: dict):
         associativity = cfg["cache_size"] // cfg["num_sets"]
         self.cache = Cache(cfg["cache_size"], associativity, cfg["policy"])
-        policy = make_policy(cfg["policy"], cfg["num_sets"], associativity)
-        self.cache.set_policy(policy)
+        self.cache.set_policy(make_policy(cfg["policy"]))
         self.memory_refs = []
         self.ref_index = 0
-        self.status.config(text=f"Cache ready: {cfg['cache_size']} blocks, "
-                                f"{cfg['num_sets']} sets, policy={cfg['policy']}")
+        self.cache_view.setup(cfg["num_sets"], associativity)
+
+    def step(self, address: int, task: str = None):
+        if self.cache is None:
+            return
+        result, si, bi = self.cache.access(address, task or self.task_name)
+        self.cache_view.refresh(self.cache, result, si, bi)
+        return result, si, bi
