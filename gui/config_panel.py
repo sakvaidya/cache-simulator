@@ -64,3 +64,30 @@ class ConfigPanel(tk.Frame):
                     if isinstance(child, ttk.Combobox) and \
                        self.policy_var in (child.cget("textvariable"),):
                         child.configure(values=policies)
+
+
+class TaskPanel(tk.Frame):
+    """Panel for entering task name and number of memory references."""
+
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, bg="#4a7c2f", **kwargs)
+        self._build()
+
+    def _build(self):
+        tk.Label(self, text="Task Name", bg="#4a7c2f", fg="white",
+                 font=("Helvetica", 9)).grid(row=0, column=0, sticky="w", padx=4, pady=2)
+        self.task_name_var = tk.StringVar(value="task A")
+        tk.Entry(self, textvariable=self.task_name_var, width=14).grid(
+            row=0, column=1, padx=4, pady=2)
+
+        tk.Label(self, text="# Memory Refs", bg="#4a7c2f", fg="white",
+                 font=("Helvetica", 9)).grid(row=1, column=0, sticky="w", padx=4, pady=2)
+        self.num_refs_var = tk.StringVar(value="8")
+        tk.Entry(self, textvariable=self.num_refs_var, width=6).grid(
+            row=1, column=1, padx=4, pady=2)
+
+    def get_task_config(self) -> dict:
+        return {
+            "task_name": self.task_name_var.get(),
+            "num_refs": int(self.num_refs_var.get()),
+        }
