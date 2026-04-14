@@ -36,7 +36,7 @@ class ConfigPanel(tk.Frame):
                  font=("Helvetica", 9)).pack(side=tk.LEFT)
         self.policy_var = tk.StringVar(value="RAND")
         ttk.Combobox(row3, textvariable=self.policy_var,
-                     values=["RAND"], width=7,
+                     values=["RAND", "LRU"], width=7,
                      state="readonly").pack(side=tk.RIGHT)
 
         ttk.Separator(self, orient="horizontal").pack(fill=tk.X, padx=8, pady=6)

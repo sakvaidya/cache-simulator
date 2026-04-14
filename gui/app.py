@@ -1,12 +1,14 @@
 import tkinter as tk
 from cache import Cache
-from replacement import RANDPolicy
+from replacement import RANDPolicy, LRUPolicy
 from gui.config_panel import ConfigPanel
 
 
-def make_policy(name: str, num_sets: int, associativity: int):
+def make_policy(name: str):
     if name == "RAND":
         return RANDPolicy()
+    elif name == "LRU":
+        return LRUPolicy()
     raise ValueError(f"Unknown policy: {name}")
 
 
@@ -38,9 +40,8 @@ class App:
     def _on_update(self, cfg: dict):
         associativity = cfg["cache_size"] // cfg["num_sets"]
         self.cache = Cache(cfg["cache_size"], associativity, cfg["policy"])
-        policy = make_policy(cfg["policy"], cfg["num_sets"], associativity)
-        self.cache.set_policy(policy)
+        self.cache.set_policy(make_policy(cfg["policy"]))
         self.memory_refs = []
         self.ref_index = 0
-        self.status.config(text=f"Cache ready: {cfg['cache_size']} blocks, "
-                                f"{cfg['num_sets']} sets, policy={cfg['policy']}")
+        self.status.config(text=f"Cache ready: size={cfg['cache_size']}, "
+                                f"sets={cfg['num_sets']}, policy={cfg['policy']}")
