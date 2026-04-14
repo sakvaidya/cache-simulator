@@ -85,3 +85,7 @@ class CacheView(tk.Frame):
                     lbl.config(text=text, bg=bg)
                 else:
                     lbl.config(text="", bg=COLOR_EMPTY)
+
+
+# Block text format: "<address>\nTask: <task_name>"
+# Colors: hit=cyan, miss=red, reload=orange, empty=light gray, occupied=blue
