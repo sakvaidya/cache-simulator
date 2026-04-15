@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from gui.config_panel import ConfigPanel
 
 
 class App:
@@ -12,7 +12,6 @@ class App:
         self.memory_refs = []
         self.ref_index = 0
 
-        # Main layout: left panel | right panel
         self.left_frame = tk.Frame(root, bg="#4a7c2f", width=260)
         self.left_frame.pack(side=tk.LEFT, fill=tk.Y, padx=6, pady=6)
         self.left_frame.pack_propagate(False)
@@ -20,14 +19,13 @@ class App:
         self.right_frame = tk.Frame(root, bg="white")
         self.right_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=6, pady=6)
 
-        self._build_placeholder()
+        self.config_panel = ConfigPanel(self.left_frame, on_update_config=self._on_update)
+        self.config_panel.pack(fill=tk.X)
 
-    def _build_placeholder(self):
-        lbl = tk.Label(self.left_frame, text="Cache Simulator",
-                       bg="#4a7c2f", fg="white",
-                       font=("Helvetica", 13, "bold"))
-        lbl.pack(pady=12)
+        self.placeholder = tk.Label(self.right_frame,
+                                    text="Configure cache and press 'Update Configuration'",
+                                    bg="white", font=("Helvetica", 11))
+        self.placeholder.pack(expand=True)
 
-        lbl2 = tk.Label(self.right_frame, text="Configure cache and press\n'Update Configuration'",
-                        bg="white", font=("Helvetica", 11))
-        lbl2.pack(expand=True)
+    def _on_update(self, cfg: dict):
+        print("Config updated:", cfg)
