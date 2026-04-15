@@ -89,3 +89,18 @@ class CacheView(tk.Frame):
 
 # Block text format: "<address>\nTask: <task_name>"
 # Colors: hit=cyan, miss=red, reload=orange, empty=light gray, occupied=blue
+
+
+    def highlight_cell(self, set_index: int, block_index: int, result: str):
+        """Manually highlight a specific cell with a result color."""
+        if set_index >= len(self._cells):
+            return
+        if block_index >= len(self._cells[set_index]):
+            return
+        lbl = self._cells[set_index][block_index]
+        color_map = {
+            "hit": COLOR_HIT,
+            "miss": COLOR_MISS,
+            "reload_transient": COLOR_RELOAD,
+        }
+        lbl.config(bg=color_map.get(result, COLOR_OCCUPIED))
