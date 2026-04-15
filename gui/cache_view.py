@@ -104,3 +104,20 @@ class CacheView(tk.Frame):
             "reload_transient": COLOR_RELOAD,
         }
         lbl.config(bg=color_map.get(result, COLOR_OCCUPIED))
+
+
+class LegendBar(tk.Frame):
+    """Color legend shown below the cache grid."""
+
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, bg="white", **kwargs)
+        items = [
+            ("HIT", COLOR_HIT, "black"),
+            ("MISS", COLOR_MISS, "white"),
+            ("RELOAD TRANSIENT", COLOR_RELOAD, "black"),
+        ]
+        for text, bg, fg in items:
+            tk.Label(self, text=text, bg=bg, fg=fg,
+                     font=("Helvetica", 9, "bold"),
+                     padx=16, pady=4, relief=tk.FLAT).pack(
+                side=tk.LEFT, expand=True, fill=tk.X)
