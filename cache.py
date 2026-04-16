@@ -13,7 +13,6 @@ class CacheBlock:
 class CacheSet:
     """
     Represents one set in a set-associative cache.
-    Each set has `associativity` number of blocks.
     LRU access ordering is tracked externally by LRUPolicy via block indices.
     """
     associativity: int = 1
@@ -41,16 +40,24 @@ class Cache:
     def set_policy(self, policy):
         self.policy = policy
 
+    # ── Address decomposition helpers ──────────────
     def get_set_index(self, address: int) -> int:
+        """Map a memory address to its set index."""
         return address % self.num_sets
 
+    def get_tag(self, address: int) -> int:
+        """Return the tag portion of an address (full address used as tag here)."""
+        return address
+
+    # ──────────────────────────────────────────────
     def access(self, address: int, task: str = "?") -> Tuple[str, int, int]:
         self.total_refs += 1
         set_index = self.get_set_index(address)
+        tag = self.get_tag(address)
         cache_set = self.sets[set_index]
 
         for i, block in enumerate(cache_set.blocks):
-            if block.valid and block.tag == address:
+            if block.valid and block.tag == tag:
                 self.hits += 1
                 self.policy.on_access(set_index, i)
                 self.last_access = address
@@ -69,7 +76,7 @@ class Cache:
             self.reload_transients += 1
             result = "reload_transient"
 
-        cache_set.blocks[idx] = CacheBlock(tag=address, valid=True, task=task)
+        cache_set.blocks[idx] = CacheBlock(tag=tag, valid=True, task=task)
         self.policy.on_insert(set_index, idx)
         self.last_access = address
         return (result, set_index, idx)
