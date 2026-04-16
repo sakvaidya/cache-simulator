@@ -39,25 +39,22 @@ class Cache:
     def get_set_index(self, address: int) -> int:
         return address % self.num_sets
 
+    def get_tag(self, address: int) -> int:
+        return address
+
     def access(self, address: int, task: str = "?") -> Tuple[str, int, int]:
-        """
-        Access a memory address.
-        Returns (result, set_index, block_index)
-        result is one of: 'hit', 'miss', 'reload_transient'
-        """
         self.total_refs += 1
         set_index = self.get_set_index(address)
+        tag = self.get_tag(address)
         cache_set = self.sets[set_index]
 
-        # Check for hit
         for i, block in enumerate(cache_set.blocks):
-            if block.valid and block.tag == address:
+            if block.valid and block.tag == tag:
                 self.hits += 1
                 self.policy.on_access(set_index, i)
                 self.last_access = address
                 return ("hit", set_index, i)
 
-        # Miss — find empty slot or evict
         self.misses += 1
         empty = next((i for i, b in enumerate(cache_set.blocks) if not b.valid), None)
 
@@ -66,13 +63,12 @@ class Cache:
         else:
             idx = self.policy.choose_victim(cache_set.blocks, set_index)
 
-        # Reload transient: evicting a block that was just brought in
         result = "miss"
         if cache_set.blocks[idx].valid and cache_set.blocks[idx].tag == self.last_access:
             self.reload_transients += 1
             result = "reload_transient"
 
-        cache_set.blocks[idx] = CacheBlock(tag=address, valid=True, task=task)
+        cache_set.blocks[idx] = CacheBlock(tag=tag, valid=True, task=task)
         self.policy.on_insert(set_index, idx)
         self.last_access = address
         return (result, set_index, idx)
@@ -84,6 +80,8 @@ class Cache:
         self.misses = 0
         self.reload_transients = 0
         self.last_access = None
+        if self.policy:
+            self.policy.reset()
 
     @property
     def hit_rate(self) -> float:
