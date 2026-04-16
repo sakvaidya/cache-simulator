@@ -32,10 +32,21 @@ class ConfigPanel(tk.Frame):
                      values=["1", "2", "4", "8"], width=5,
                      state="readonly").pack(side=tk.RIGHT)
 
+        # Replacement Policy
+        row3 = tk.Frame(self, bg="#4a7c2f")
+        row3.pack(fill=tk.X, padx=8, pady=2)
+        tk.Label(row3, text="Replacement Policy", bg="#4a7c2f", fg="white",
+                 font=("Helvetica", 9)).pack(side=tk.LEFT)
+        self.policy_var = tk.StringVar(value="RAND")
+        ttk.Combobox(row3, textvariable=self.policy_var,
+                     values=["RAND"], width=7,
+                     state="readonly").pack(side=tk.RIGHT)
+
         ttk.Separator(self, orient="horizontal").pack(fill=tk.X, padx=8, pady=6)
 
     def get_config(self) -> dict:
         return {
             "cache_size": int(self.cache_size_var.get()),
             "num_sets": int(self.num_sets_var.get()),
+            "policy": self.policy_var.get(),
         }
