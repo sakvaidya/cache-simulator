@@ -2,6 +2,7 @@ import tkinter as tk
 from cache import Cache
 from replacement import RANDPolicy, LRUPolicy
 from gui.config_panel import ConfigPanel
+from gui.cache_view import CacheView, LegendBar
 
 
 def make_policy(name: str):
@@ -32,10 +33,11 @@ class App:
         self.config_panel = ConfigPanel(self.left_frame, on_update_config=self._on_update)
         self.config_panel.pack(fill=tk.X)
 
-        self.status = tk.Label(self.right_frame,
-                               text="Configure cache and press 'Update Configuration'",
-                               bg="white", font=("Helvetica", 11))
-        self.status.pack(expand=True)
+        self.cache_view = CacheView(self.right_frame)
+        self.cache_view.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
+
+        self.legend = LegendBar(self.right_frame)
+        self.legend.pack(fill=tk.X, padx=4, pady=(0, 4))
 
     def _on_update(self, cfg: dict):
         associativity = cfg["cache_size"] // cfg["num_sets"]
@@ -43,5 +45,11 @@ class App:
         self.cache.set_policy(make_policy(cfg["policy"]))
         self.memory_refs = []
         self.ref_index = 0
-        self.status.config(text=f"Cache ready: size={cfg['cache_size']}, "
-                                f"sets={cfg['num_sets']}, policy={cfg['policy']}")
+        self.cache_view.setup(cfg["num_sets"], associativity)
+
+    def step(self, address: int, task: str = "A"):
+        if self.cache is None:
+            return
+        result, si, bi = self.cache.access(address, task)
+        self.cache_view.refresh(self.cache, result, si, bi)
+        return result, si, bi
