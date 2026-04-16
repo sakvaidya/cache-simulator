@@ -63,6 +63,7 @@ class ConfigPanel(tk.Frame):
 
     def set_available_policies(self, policies: list):
         self.policy_combo.configure(values=policies)
+        self.policy_combo.configure(values=policies)
 
 
 class TaskPanel(tk.Frame):

@@ -54,7 +54,6 @@ class App:
             on_reset=self._on_reset,
         )
         self.clock_panel.pack(fill=tk.X, pady=4)
-
         self.ref_bar = MemRefBar(self.right_frame)
         self.ref_bar.pack(fill=tk.X, padx=4, pady=(4, 0))
 
@@ -114,3 +113,5 @@ class App:
             associativity = self._cfg["cache_size"] // self._cfg["num_sets"]
             self.cache_view.setup(self._cfg["num_sets"], associativity)
         self.ref_bar.set_refs(self.memory_refs)
+        if self.cache:
+            self.stats_panel.update_from_cache(self.cache)
