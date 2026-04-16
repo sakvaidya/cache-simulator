@@ -91,3 +91,38 @@ class TaskPanel(tk.Frame):
             "task_name": self.task_name_var.get(),
             "num_refs": int(self.num_refs_var.get()),
         }
+
+
+class ClockPanel(tk.Frame):
+    """Step/Run controls at the bottom of the left panel."""
+
+    def __init__(self, parent, on_step, on_reset, **kwargs):
+        super().__init__(parent, bg="#4a7c2f", **kwargs)
+        self.on_step = on_step
+        self.on_reset = on_reset
+        self._build()
+
+    def _build(self):
+        tk.Label(self, text="Clock Options", bg="#4a7c2f", fg="white",
+                 font=("Helvetica", 9, "bold")).pack(anchor="w", padx=6, pady=(6, 2))
+
+        self.mode_var = tk.StringVar(value="single")
+        modes = [("Single Step", "single"), ("Run to Completion", "run")]
+        for text, val in modes:
+            tk.Radiobutton(self, text=text, variable=self.mode_var, value=val,
+                           bg="#4a7c2f", fg="white", selectcolor="#2d5a1b",
+                           font=("Helvetica", 9)).pack(anchor="w", padx=12)
+
+        btn_row = tk.Frame(self, bg="#4a7c2f")
+        btn_row.pack(fill=tk.X, padx=8, pady=4)
+
+        tk.Button(btn_row, text="Step/Run", command=self._on_step_run,
+                  bg="#2d5a1b", fg="white", relief=tk.FLAT,
+                  padx=8, pady=4).pack(side=tk.LEFT, padx=2)
+
+        tk.Button(btn_row, text="Reset", command=self.on_reset,
+                  bg="#8b0000", fg="white", relief=tk.FLAT,
+                  padx=8, pady=4).pack(side=tk.LEFT, padx=2)
+
+    def _on_step_run(self):
+        self.on_step(self.mode_var.get())
