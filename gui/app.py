@@ -4,7 +4,7 @@ from cache import Cache
 from replacement import RANDPolicy, LRUPolicy, FIFOPolicy
 from gui.config_panel import ConfigPanel, TaskPanel
 from gui.cache_view import CacheView, LegendBar
-from gui.stats_panel import MemRefBar
+from gui.stats_panel import MemRefBar, StatsPanel
 
 
 def make_policy(name: str):
@@ -36,7 +36,7 @@ class App:
         self.right_frame = tk.Frame(root, bg="white")
         self.right_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=6, pady=6)
 
-        # Left panel widgets
+        # Left panel
         self.config_panel = ConfigPanel(self.left_frame, on_update_config=self._on_update)
         self.config_panel.pack(fill=tk.X)
 
@@ -48,7 +48,7 @@ class App:
                   bg="#2d5a1b", fg="white", relief=tk.FLAT,
                   padx=4, pady=4).pack(pady=2, fill=tk.X, padx=8)
 
-        # Right panel widgets
+        # Right panel
         self.ref_bar = MemRefBar(self.right_frame)
         self.ref_bar.pack(fill=tk.X, padx=4, pady=(4, 0))
 
@@ -56,7 +56,10 @@ class App:
         self.cache_view.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
         self.legend = LegendBar(self.right_frame)
-        self.legend.pack(fill=tk.X, padx=4, pady=(0, 4))
+        self.legend.pack(fill=tk.X, padx=4, pady=(0, 2))
+
+        self.stats_panel = StatsPanel(self.right_frame)
+        self.stats_panel.pack(fill=tk.X, padx=4, pady=(0, 4))
 
     def _on_update(self, cfg: dict):
         self._cfg = cfg
@@ -77,14 +80,13 @@ class App:
         self.ref_bar.set_refs(self.memory_refs)
 
     def step(self, address: int = None, task: str = None):
-        if self.cache is None:
+        if self.cache is None or self.ref_index >= len(self.memory_refs):
             return
         if address is None:
-            if self.ref_index >= len(self.memory_refs):
-                return
             address = self.memory_refs[self.ref_index]
         result, si, bi = self.cache.access(address, task or self.task_name)
         self.cache_view.refresh(self.cache, result, si, bi)
         self.ref_bar.advance(self.ref_index)
+        self.stats_panel.update_from_cache(self.cache, last_address=address)
         self.ref_index += 1
         return result, si, bi
